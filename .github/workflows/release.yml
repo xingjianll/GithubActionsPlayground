@@ -1,5 +1,5 @@
 name: release
-run-name: Release ${{ inputs.working-directory }} by @${{ github.actor }}
+run-name: Release
 on:
   workflow_dispatch:
 
@@ -40,7 +40,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: false
-          tag: ${{ needs.build.outputs.version }}
+          tag: ${{ needs.check-version.outputs.version }}
           body: testest
           commit: ${{ github.sha }}
           makeLatest: true
