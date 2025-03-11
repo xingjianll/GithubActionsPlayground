@@ -40,7 +40,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           generateReleaseNotes: false
-          tag: "v1.1.1"
+          tag: ${{ needs.build.outputs.version }}
           body: testest
           commit: ${{ github.sha }}
           makeLatest: true
