@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## Changes
+            - Add details about this release here
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Binaries (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-artifact
+          path: ./dist/*  # Adjust path to built files
