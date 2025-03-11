@@ -1,32 +1,46 @@
-name: Release
-permissions:
-  contents: write
+name: release
+run-name: Release ${{ inputs.working-directory }} by @${{ github.actor }}
 on:
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.11"
 
 jobs:
-  release:
+  check-version:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Version
+        id: check-version
+        shell: python
+        run: |
+          import os
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+          version = data["project"]["version"]
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"version={version}\n")
+
+  mark-release:
+    needs:
+      - check-version
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+      - uses: actions/checkout@v4
+      - name: Create Tag
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: |
-            ## Changes
-            - Add details about this release here
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Binaries (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: my-artifact
-          path: ./dist/*  # Adjust path to built files
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generateReleaseNotes: false
+          tag: ${{ needs.build.outputs.version }}
+          body: testest
+          commit: ${{ github.sha }}
+          makeLatest: true
